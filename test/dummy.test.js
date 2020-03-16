@@ -1,12 +1,5 @@
 const listHelper = require("../utils/list_helper");
 
-test("dummy returns one", () => {
-  const blogs = [];
-
-  const result = listHelper.dummy(blogs);
-  expect(result).toBe(1);
-});
-
 const listWithOneBlog = [
   {
     _id: "92352",
@@ -72,6 +65,13 @@ const blogsLong = [
   }
 ];
 
+test("dummy returns one", () => {
+  const blogs = [];
+
+  const result = listHelper.dummy(blogs);
+  expect(result).toBe(1);
+});
+
 describe("total Likes", () => {
   test("of empty list is zero", () => {
     const blogs = [];
@@ -93,7 +93,15 @@ describe("total Likes", () => {
 describe("Favortie Blog", () => {
   test("Returns the Favorite Blog with most likes", () => {
     const result = listHelper.favoriteBlog(blogsLong);
-    console.log(result);
+    console.log("The blog with most likes ", result);
     expect(result.likes).toEqual(12);
+  });
+});
+
+describe("Most Blogs", () => {
+  test("The Author with most Blogs is tested", () => {
+    const result = listHelper.mostBlogs(blogsLong);
+    console.log("The author with most blogs ", result);
+    expect(result).toEqual({ author: "Robert C. Martin", blogs: 3 });
   });
 });
