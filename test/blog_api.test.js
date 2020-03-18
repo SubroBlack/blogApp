@@ -62,6 +62,28 @@ test("ID is unique", async () => {
 });
 */
 
+test("HTTP POST creates new blog", async () => {
+  const newBlog = {
+    title: "New Blog",
+    author: "Developer",
+    url: "https://abc.com",
+    likes: 1234
+  };
+
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const result = await api.get("/api/blogs");
+  const blogsAtEnd = result.body;
+  expect(blogsAtEnd.length).toBe(initialBlogs.length + 1);
+
+  const addedBlog = blogs[initialBlogs.length];
+  expect(addedBlog.title).toBe(newBlog.title);
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });
