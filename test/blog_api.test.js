@@ -42,6 +42,26 @@ test("Correct number of Blogs are returned", async () => {
   expect(response.body.length).toBe(initialBlogs.length);
 });
 
+test("id is unique identifier in the DB", async () => {
+  const response = await api.get("/api/blogs");
+  const blogs = response.body;
+  expect(blogs[0].id).toBeDefined();
+});
+
+/*
+test("ID is unique", async () => {
+  const response = await api.get("/api/blogs");
+  console.log(response.body);
+  const ids = response.body.map(blog => blog._id.toString());
+  console.log(ids);
+  const firstId = ids[0];
+  const remainingIds = ids.filter(id => {
+    id !== firstId;
+  });
+  expect(remainingIds).not.toContain(firstId);
+});
+*/
+
 afterAll(() => {
   mongoose.connection.close();
 });
