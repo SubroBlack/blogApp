@@ -7,8 +7,14 @@ blogsRouter.get("/", async (request, response) => {
 });
 
 blogsRouter.post("/", async (request, response) => {
-  const blog = new Blog(request.body);
-  const result = await blog.save();
+  const body = {
+    title: request.body.title,
+    author: request.body.author,
+    url: request.body.url,
+    likes: request.body.likes ? request.body.likes : 0
+  };
+  const newBlog = new Blog(body);
+  const result = await newBlog.save();
   response.status(201).json(result.toJSON());
 });
 

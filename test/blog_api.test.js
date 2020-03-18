@@ -80,8 +80,28 @@ test("HTTP POST creates new blog", async () => {
   const blogsAtEnd = result.body;
   expect(blogsAtEnd.length).toBe(initialBlogs.length + 1);
 
-  const addedBlog = blogs[initialBlogs.length];
+  const addedBlog = blogsAtEnd[initialBlogs.length];
   expect(addedBlog.title).toBe(newBlog.title);
+});
+
+test("Default amount of likes for blogs is 0", async () => {
+  const newBlog = {
+    title: "Zero Likes Blog",
+    author: "Developer",
+    url: "https://abc.com"
+  };
+
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const result = await api.get("/api/blogs");
+  const blogsAtEnd = result.body;
+
+  const addedBlog = blogsAtEnd[initialBlogs.length];
+  expect(addedBlog.likes).toBe(0);
 });
 
 afterAll(() => {
