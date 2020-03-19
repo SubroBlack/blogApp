@@ -100,6 +100,25 @@ test("Empty Title and URL fails with status code 400", async () => {
     .expect(400);
 });
 
+test("A single Post can be deleted using Id", async () => {
+  const blogToBeDeleted = {
+    title: "TO be deleted",
+    author: "abc",
+    url: "abc"
+  };
+  await api
+    .post("/api/blogs")
+    .send(blogToBeDeleted)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const blogsAtEnd = await testHelper.blogsInDb();
+
+  const addedBlogId = blogsAtEnd[testHelper.initialBlogs.length].id;
+
+  await api.delete(`/api/blogs/${addedBlogId}`).expect(204);
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });
