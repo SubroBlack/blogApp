@@ -5,26 +5,12 @@ const app = require("../app");
 const api = supertest(app);
 
 const Blog = require("../models/blog");
-
-const initialBlogs = [
-  {
-    title: "Industrial Society and its future",
-    author: "Theodore J. Kaczynski",
-    url: "http://editions-hache.com/essais/pdf/kaczynski2.pdf",
-    likes: 350000
-  },
-  {
-    title: "Me and Bobby McGee",
-    author: "Janis Joplin",
-    url: "https://www.youtube.com/watch?v=WXV_QjenbDw",
-    likes: 164000
-  }
-];
+const testHelper = require("./test_helper");
 
 beforeEach(async () => {
   await Blog.deleteMany({});
 
-  const blogObjects = initialBlogs.map(blog => new Blog(blog));
+  const blogObjects = testHelper.initialBlogs.map(blog => new Blog(blog));
   const promiseArray = blogObjects.map(blog => blog.save());
   await Promise.all(promiseArray);
 });
@@ -39,7 +25,7 @@ test("Blogs are returned as JSON", async () => {
 test("Correct number of Blogs are returned", async () => {
   const response = await api.get("/api/blogs");
 
-  expect(response.body.length).toBe(initialBlogs.length);
+  expect(response.body.length).toBe(testHelper.initialBlogs.length);
 });
 
 test("id is unique identifier in the DB", async () => {
@@ -76,11 +62,10 @@ test("HTTP POST creates new blog", async () => {
     .expect(201)
     .expect("Content-Type", /application\/json/);
 
-  const result = await api.get("/api/blogs");
-  const blogsAtEnd = result.body;
-  expect(blogsAtEnd.length).toBe(initialBlogs.length + 1);
+  const blogsAtEnd = await testHelper.blogsInDb();
+  expect(blogsAtEnd.length).toBe(testHelper.initialBlogs.length + 1);
 
-  const addedBlog = blogsAtEnd[initialBlogs.length];
+  const addedBlog = blogsAtEnd[testHelper.initialBlogs.length];
   expect(addedBlog.title).toBe(newBlog.title);
 });
 
@@ -97,11 +82,22 @@ test("Default amount of likes for blogs is 0", async () => {
     .expect(201)
     .expect("Content-Type", /application\/json/);
 
-  const result = await api.get("/api/blogs");
-  const blogsAtEnd = result.body;
+  const blogsAtEnd = await testHelper.blogsInDb();
 
-  const addedBlog = blogsAtEnd[initialBlogs.length];
+  const addedBlog = blogsAtEnd[testHelper.initialBlogs.length];
   expect(addedBlog.likes).toBe(0);
+});
+
+test("Empty Title and URL fails with status code 400", async () => {
+  const newBlog = {
+    author: "Developer",
+    likes: 2
+  };
+
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(400);
 });
 
 afterAll(() => {
