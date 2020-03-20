@@ -119,6 +119,30 @@ test("A single Post can be deleted using Id", async () => {
   await api.delete(`/api/blogs/${addedBlogId}`).expect(204);
 });
 
+test("A single Post likes can be Updated using Id", async () => {
+  const newBlog = {
+    title: "TO be Changed",
+    author: "abc",
+    url: "abc"
+  };
+  await api
+    .post("/api/blogs")
+    .send(newBlog)
+    .expect(201)
+    .expect("Content-Type", /application\/json/);
+
+  const blogsAtEnd = await testHelper.blogsInDb();
+
+  const addedBlogId = blogsAtEnd[testHelper.initialBlogs.length].id;
+  const updateBlog = {
+    likes: 1000
+  };
+
+  const updated = await api.put(`/api/blogs/${addedBlogId}`).send(updateBlog);
+
+  expect(updated.body.likes).toBe(1000);
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });
