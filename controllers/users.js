@@ -7,6 +7,11 @@ usersRouter.get("/", async (request, response) => {
   response.json(users.map(user => user.toJSON()));
 });
 
+usersRouter.get("/:id", async (request, response) => {
+  const user = await User.findById(request.params.id).populate("notes");
+  response.json(user.toJSON());
+});
+
 usersRouter.post("/", async (request, response) => {
   if (request.body.password.length < 3) {
     return response

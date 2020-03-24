@@ -3,6 +3,8 @@ const supertest = require("supertest");
 const app = require("../app");
 
 const api = supertest(app);
+const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
 const Blog = require("../models/blog");
 const testHelper = require("./test_helper");
@@ -34,21 +36,10 @@ test("id is unique identifier in the DB", async () => {
   expect(blogs[0].id).toBeDefined();
 });
 
-/*
-test("ID is unique", async () => {
-  const response = await api.get("/api/blogs");
-  console.log(response.body);
-  const ids = response.body.map(blog => blog._id.toString());
-  console.log(ids);
-  const firstId = ids[0];
-  const remainingIds = ids.filter(id => {
-    id !== firstId;
-  });
-  expect(remainingIds).not.toContain(firstId);
-});
-*/
-
 test("HTTP POST creates new blog", async () => {
+  //Section to check the login
+  const token = await testHelper.tokenProducer();
+
   const newBlog = {
     title: "New Blog",
     author: "Developer",
@@ -59,6 +50,7 @@ test("HTTP POST creates new blog", async () => {
   await api
     .post("/api/blogs")
     .send(newBlog)
+    .set({ Authorization: token })
     .expect(201)
     .expect("Content-Type", /application\/json/);
 
@@ -70,6 +62,9 @@ test("HTTP POST creates new blog", async () => {
 });
 
 test("Default amount of likes for blogs is 0", async () => {
+  //Section to check the login
+  const token = await testHelper.tokenProducer();
+
   const newBlog = {
     title: "Zero Likes Blog",
     author: "Developer",
@@ -79,6 +74,7 @@ test("Default amount of likes for blogs is 0", async () => {
   await api
     .post("/api/blogs")
     .send(newBlog)
+    .set({ Authorization: token })
     .expect(201)
     .expect("Content-Type", /application\/json/);
 
@@ -89,6 +85,9 @@ test("Default amount of likes for blogs is 0", async () => {
 });
 
 test("Empty Title and URL fails with status code 400", async () => {
+  //Section to check the login
+  const token = await testHelper.tokenProducer();
+
   const newBlog = {
     author: "Developer",
     likes: 2
@@ -97,10 +96,14 @@ test("Empty Title and URL fails with status code 400", async () => {
   await api
     .post("/api/blogs")
     .send(newBlog)
+    .set({ Authorization: token })
     .expect(400);
 });
 
 test("A single Post can be deleted using Id", async () => {
+  //Section to check the login
+  const token = await testHelper.tokenProducer();
+
   const blogToBeDeleted = {
     title: "TO be deleted",
     author: "abc",
@@ -109,6 +112,7 @@ test("A single Post can be deleted using Id", async () => {
   await api
     .post("/api/blogs")
     .send(blogToBeDeleted)
+    .set({ Authorization: token })
     .expect(201)
     .expect("Content-Type", /application\/json/);
 
@@ -116,10 +120,16 @@ test("A single Post can be deleted using Id", async () => {
 
   const addedBlogId = blogsAtEnd[testHelper.initialBlogs.length].id;
 
-  await api.delete(`/api/blogs/${addedBlogId}`).expect(204);
+  await api
+    .delete(`/api/blogs/${addedBlogId}`)
+    .set({ Authorization: token })
+    .expect(204);
 });
 
 test("A single Post likes can be Updated using Id", async () => {
+  //Section to check the login
+  const token = await testHelper.tokenProducer();
+
   const newBlog = {
     title: "TO be Changed",
     author: "abc",
@@ -128,17 +138,21 @@ test("A single Post likes can be Updated using Id", async () => {
   await api
     .post("/api/blogs")
     .send(newBlog)
+    .set({ Authorization: token })
     .expect(201)
     .expect("Content-Type", /application\/json/);
 
   const blogsAtEnd = await testHelper.blogsInDb();
 
-  const addedBlogId = blogsAtEnd[testHelper.initialBlogs.length].id;
+  const addedBlog = blogsAtEnd[testHelper.initialBlogs.length];
   const updateBlog = {
     likes: 1000
   };
 
-  const updated = await api.put(`/api/blogs/${addedBlogId}`).send(updateBlog);
+  const updated = await api
+    .put(`/api/blogs/${addedBlog.id}`)
+    .send(updateBlog)
+    .set({ Authorization: token });
 
   expect(updated.body.likes).toBe(1000);
 });

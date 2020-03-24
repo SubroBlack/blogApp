@@ -1,5 +1,10 @@
 const Blog = require("./../models/blog");
 const User = require("./../models/user");
+const supertest = require("supertest");
+const bcrypt = require("bcryptjs");
+const app = require("../app");
+
+const api = supertest(app);
 
 const initialBlogs = [
   {
@@ -28,8 +33,25 @@ const usersInDb = async () => {
   return users.map(user => user.toJSON());
 };
 
+// Function to return loggedIn token
+const tokenProducer = async () => {
+  await User.deleteMany({});
+
+  const passwordHash = await bcrypt.hash("SEKRET", 10);
+  const user = new User({ username: "test", name: "test", passwordHash });
+
+  await user.save();
+
+  const testUser = { username: "test", password: "SEKRET" };
+
+  const login = await api.post("/api/login").send(testUser);
+  const token = `bearer ${login.body.token}`;
+  return token;
+};
+
 module.exports = {
   initialBlogs,
+  tokenProducer,
   blogsInDb,
   usersInDb
 };
