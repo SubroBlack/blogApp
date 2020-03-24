@@ -33,8 +33,21 @@ blogsRouter.post("/", async (request, response) => {
 });
 
 blogsRouter.delete("/:id", async (request, response) => {
-  await Blog.findByIdAndRemove(request.params.id);
-  response.status(204).end();
+  const token = request.token;
+
+  const decodedToken = jwt.verify(token, process.env.SECRET);
+  if (!token || !decodedToken.id) {
+    return response.status(401).json({ error: "token missing or invalid" });
+  }
+  const blog = await Blog.findById(request.params.id);
+  const user = await User.findById(decodedToken.id);
+
+  if (blog.user.toString() === decodedToken.id) {
+    await Blog.findByIdAndRemove(request.params.id);
+    user.blogs = user.blogs.filter(blog => blog !== request.params.id);
+    await user.save();
+    return response.status(204).end();
+  }
 });
 
 blogsRouter.put("/:id", async (request, response) => {
