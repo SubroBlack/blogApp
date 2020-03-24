@@ -1,6 +1,6 @@
-const uniqueValidator = require("mongoose-unique-validator");
 const mongoose = require("mongoose");
 const supertest = require("supertest");
+const bcrypt = require("bcryptjs");
 const app = require("../app");
 
 const api = supertest(app);
@@ -11,10 +11,10 @@ const testHelper = require("./test_helper");
 beforeEach(async () => {
   await User.deleteMany({});
 
-  const userObjects = testHelper.initialUsers.map(user => new User(user));
-  const promiseArray = userObjects.map(user => user.save());
-  await Promise.all(promiseArray);
-  console.log("ALL DONE!!!!");
+  const passwordHash = await bcrypt.hash("SEKRET", 10);
+  const user = new User({ username: "test", name: "test", passwordHash });
+
+  await user.save();
 });
 
 describe("Invalid User cannot be Added", () => {
